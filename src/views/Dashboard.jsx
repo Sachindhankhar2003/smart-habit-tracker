@@ -16,7 +16,7 @@ const itemVariants = {
 
 export default function Dashboard() {
   const { habits, toggleComplete, points, achievements: habitBadges } = useHabits();
-  const { fitnessAchievements } = useFitness();
+  const { fitnessAchievements, steps, stepGoal, activeMinutes, activeMinutesGoal, calories } = useFitness();
   const achievements = [...habitBadges, ...(fitnessAchievements || [])];
   
   const today = new Date();
@@ -28,6 +28,13 @@ export default function Dashboard() {
 
   const highStreakHabits = habits.filter(h => h.streak >= 7);
 
+  // Calculate Health Score (Max 100)
+  const habitScore = progress * 0.3; // 30% weight
+  const stepScore = Math.min(30, (steps / stepGoal) * 30); // 30% weight
+  const activeScore = Math.min(20, (activeMinutes / activeMinutesGoal) * 20); // 20% weight
+  const calorieScore = Math.min(20, (calories / 300) * 20); // 20% weight
+  const healthScore = Math.round(habitScore + stepScore + activeScore + calorieScore);
+
   return (
     <motion.div initial="hidden" animate="visible" variants={containerVariants}>
       <motion.div variants={itemVariants} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -38,8 +45,18 @@ export default function Dashboard() {
       </motion.div>
       
       <motion.div variants={itemVariants} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div className="card glass-panel" style={{ borderLeft: '4px solid #30d158' }}>
+          <h3 style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Daily Health Score</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#30d158' }}>{healthScore}<span style={{fontSize:'1rem', color:'var(--text-muted)'}}>/100</span></p>
+          <div style={{ width: '100%', backgroundColor: 'var(--border-color)', height: '8px', borderRadius: '4px', marginTop: '0.5rem' }}>
+            <motion.div 
+              initial={{ width: 0 }} animate={{ width: `${healthScore}%` }} transition={{ duration: 1, ease: 'easeOut' }}
+              style={{ backgroundColor: '#30d158', height: '100%', borderRadius: '4px' }} 
+            />
+          </div>
+        </div>
         <div className="card glass-panel" style={{ borderLeft: '4px solid var(--primary)' }}>
-          <h3 style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Today's Progress</h3>
+          <h3 style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Today's Habit Progress</h3>
           <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{progress}%</p>
           <div style={{ width: '100%', backgroundColor: 'var(--border-color)', height: '8px', borderRadius: '4px', marginTop: '0.5rem' }}>
             <motion.div 

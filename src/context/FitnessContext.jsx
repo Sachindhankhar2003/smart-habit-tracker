@@ -23,6 +23,70 @@ export const FitnessProvider = ({ children }) => {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const [todaysSteps, setTodaysSteps] = useState(dailySteps[todayStr] || 0);
 
+  // Native Pedometer Motion State
+  const [isMotionSupported, setIsMotionSupported] = useState(false);
+  const [motionPermission, setMotionPermission] = useState('prompt'); 
+  const [isTrackingMotion, setIsTrackingMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'DeviceMotionEvent' in window) {
+      setIsMotionSupported(true);
+    }
+    
+    let lastMagnitude = 0;
+    let stepDelay = 0; 
+    const threshold = 12.0;
+
+    const handleMotion = (event) => {
+      if (!isTrackingMotion) return;
+      const acc = event.accelerationIncludingGravity;
+      if (!acc) return;
+      
+      const magnitude = Math.sqrt((acc.x||0)**2 + (acc.y||0)**2 + (acc.z||0)**2);
+      
+      if (magnitude > threshold && lastMagnitude <= threshold && stepDelay <= 0) {
+        setTodaysSteps(prev => {
+          const newTotal = prev + 1;
+          setDailySteps(ds => ({ ...ds, [todayStr]: newTotal }));
+          return newTotal;
+        });
+        stepDelay = 15;
+      }
+      
+      if (stepDelay > 0) stepDelay--;
+      lastMagnitude = magnitude;
+    };
+
+    if (isTrackingMotion) {
+      window.addEventListener('devicemotion', handleMotion);
+    }
+
+    return () => window.removeEventListener('devicemotion', handleMotion);
+  }, [isTrackingMotion, todayStr]);
+
+  const requestMotionPermission = async () => {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      try {
+        const permissionState = await DeviceMotionEvent.requestPermission();
+        if (permissionState === 'granted') {
+          setMotionPermission('granted');
+          setIsTrackingMotion(true);
+          return true;
+        } else {
+          setMotionPermission('denied');
+          return false;
+        }
+      } catch (error) {
+        console.error("Motion request failed:", error);
+        return false;
+      }
+    } else {
+      setIsTrackingMotion(true);
+      setMotionPermission('granted');
+      return true;
+    }
+  };
+
   const updateSteps = (steps) => {
     const safeSteps = Math.max(0, parseInt(steps) || 0);
     setTodaysSteps(safeSteps);
@@ -53,7 +117,11 @@ export const FitnessProvider = ({ children }) => {
       calories, 
       activeMinutes,
       stepGoal,
-      activeMinutesGoal
+      activeMinutesGoal,
+      isMotionSupported,
+      motionPermission,
+      isTrackingMotion,
+      requestMotionPermission
     }}>
       {children}
     </FitnessContext.Provider>

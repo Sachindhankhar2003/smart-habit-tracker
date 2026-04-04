@@ -78,7 +78,10 @@ const ConcentricRings = ({ stepsProgress, activeProgress, caloriesProgress }) =>
 };
 
 export default function Fitness() {
-  const { steps, updateSteps, distance, calories, activeMinutes, stepGoal, activeMinutesGoal } = useFitness();
+  const { 
+    steps, updateSteps, distance, calories, activeMinutes, stepGoal, activeMinutesGoal,
+    isMotionSupported, motionPermission, requestMotionPermission
+  } = useFitness();
   const [inputSteps, setInputSteps] = useState('');
 
   const handleUpdate = (e) => {
@@ -129,6 +132,25 @@ export default function Fitness() {
 
       <motion.div variants={itemVariants} className="card glass-panel" style={{ marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem auto' }}>
         <h3 style={{ marginBottom: '1rem' }}>Log Activity</h3>
+        
+        {isMotionSupported && motionPermission !== 'granted' && (
+          <div style={{ padding: '1rem', marginBottom: '1rem', backgroundColor: 'rgba(255, 214, 10, 0.1)', border: '1px solid var(--warning)', borderRadius: 'var(--radius-sm)' }}>
+             <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem' }}>Enable the real pedometer to automatically count your steps using your phone's physical motion sensors!</p>
+             <button onClick={requestMotionPermission} className="btn" style={{ backgroundColor: 'var(--warning)', color: '#000', fontSize: '0.75rem', padding: '0.5rem 1rem' }}>
+               {motionPermission === 'denied' ? 'Permission Denied (Check Device Settings)' : 'Allow Motion Access'}
+             </button>
+          </div>
+        )}
+        
+        {isMotionSupported && motionPermission === 'granted' && (
+          <div style={{ padding: '0.5rem 1rem', marginBottom: '1rem', backgroundColor: 'rgba(48, 209, 88, 0.1)', border: '1px solid var(--success)', borderRadius: 'var(--radius-sm)' }}>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="spinner" style={{display: 'inline-block', border: '2px solid rgba(48,209,88,0.3)', borderTopColor: 'var(--success)', borderRadius: '50%', width: '12px', height: '12px'}} /> 
+              Real-time Motion Pedometer Active
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleUpdate} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <input 
             type="number" 
