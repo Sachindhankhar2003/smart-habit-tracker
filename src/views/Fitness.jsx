@@ -67,7 +67,12 @@ const ConcentricRings = ({ stepsProgress, activeProgress, caloriesProgress }) =>
           );
         })}
       </svg>
-      {/* Center content removed for pure rings, labels positioned below */}
+      <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <h2 style={{ fontSize: '3.5rem', fontWeight: 800, margin: 0 }}>
+          {Math.min(100, Math.round((Math.max(0, stepsProgress) + Math.max(0, activeProgress) + Math.max(0, caloriesProgress)) / 3))}<span style={{fontSize: '1.5rem'}}>%</span>
+        </h2>
+        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Goals</p>
+      </div>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useHabits } from '../context/HabitContext';
 import { Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AiCoach from '../components/AiCoach';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -36,9 +37,10 @@ export default function Habits() {
           className="btn btn-primary" 
           onClick={() => setShowAdd(!showAdd)}
         >
-          <Plus size={18} /> {showAdd ? 'Cancel' : 'Add Habit'}
         </motion.button>
       </motion.div>
+
+      <AiCoach />
 
       <AnimatePresence>
         {showAdd && (

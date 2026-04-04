@@ -1,5 +1,6 @@
 import React from 'react';
 import { useHabits } from '../context/HabitContext';
+import { useFitness } from '../context/FitnessContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
@@ -14,7 +15,10 @@ const itemVariants = {
 };
 
 export default function Dashboard() {
-  const { habits, toggleComplete, points, achievements } = useHabits();
+  const { habits, toggleComplete, points, achievements: habitBadges } = useHabits();
+  const { fitnessAchievements } = useFitness();
+  const achievements = [...habitBadges, ...(fitnessAchievements || [])];
+  
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
 

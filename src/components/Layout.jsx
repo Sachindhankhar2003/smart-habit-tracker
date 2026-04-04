@@ -13,6 +13,22 @@ export default function Layout() {
   const location = useLocation();
 
   useEffect(() => {
+    if (notifsEnabled && document.visibilityState === 'visible') {
+      const interval = setInterval(() => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const uncompleted = habits.filter(h => h.frequency === 'daily' && !h.completedDates.includes(todayStr));
+        if (uncompleted.length > 0) {
+          new Notification("Smart Habit Tracker", {
+            body: `Don't forget! You have ${uncompleted.length} habits left to complete today.`,
+            icon: '/smart-habit-tracker/pwa-192x192.png'
+          });
+        }
+      }, 60000); // Check every 60 seconds for demo purposes
+      return () => clearInterval(interval);
+    }
+  }, [notifsEnabled, habits]);
+
+  useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);

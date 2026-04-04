@@ -36,8 +36,17 @@ export const FitnessProvider = ({ children }) => {
   const stepGoal = 6000;
   const activeMinutesGoal = 90;
 
+  const fitnessAchievements = [];
+  const maxSteps = Object.values(dailySteps).reduce((a, b) => Math.max(a, b), 0);
+  const totalDaysActive = Object.keys(dailySteps).length;
+
+  if (totalDaysActive >= 1) fitnessAchievements.push({ id: 'fitness_starter', title: 'Fitness Starter', icon: '👟', description: 'Logged first fitness activity' });
+  if (maxSteps >= 10000) fitnessAchievements.push({ id: '10k_steps', title: '10k Steps Day', icon: '🏃‍♂️', description: 'Reached 10,000 steps in a single day' });
+
   return (
     <FitnessContext.Provider value={{ 
+      fitnessAchievements,
+      dailySteps,
       steps: todaysSteps, 
       updateSteps, 
       distance, 
