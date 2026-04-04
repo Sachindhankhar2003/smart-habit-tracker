@@ -1,59 +1,81 @@
 import React, { useState } from 'react';
 import { useHabits } from '../context/HabitContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Plus, Check } from 'lucide-react';
+import { Bot, Send, Plus, Check, Loader2 } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default function AiCoach() {
   const [query, setQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, type: 'bot', text: "Hi! I'm your AI Habit Coach. Tell me your goals (e.g., 'I want to be fit' or 'I want to be productive')."}
+    { id: 1, type: 'bot', text: "Hi! I'm your AI Habit Coach. Ask me anything about health, productivity, or setting goals!"}
   ]);
   const { addHabit, habits } = useHabits();
   const [addedHabits, setAddedHabits] = useState([]);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim() || isTyping) return;
 
-    const newMsgs = [...messages, { id: Date.now(), type: 'user', text: query }];
+    const userText = query;
+    const newMsgs = [...messages, { id: Date.now(), type: 'user', text: userText }];
     setMessages(newMsgs);
     setQuery('');
+    
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      setTimeout(() => {
+        setMessages(m => [...m, { 
+          id: Date.now()+1, type: 'bot', 
+          text: 'I am currently in basic mock mode. To unlock my full conversational abilities so I can answer normally and give custom advice, please enter your free Gemini API Key in the Settings tab!', 
+          suggestions: [] 
+        }]);
+      }, 500);
+      return;
+    }
 
-    // Mock AI delay
-    setTimeout(() => {
-      const lowerQ = query.toLowerCase();
+    setIsTyping(true);
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const prompt = `You are a friendly, expert AI Habit and Fitness Coach. 
+The user says: "${userText}"
+If they are asking a normal question, answer them conversationally and naturally like a real coach (don't over-format).
+If they are asking for advice or it's appropriate to suggest new habits for them to track in the app, append a JSON block at the very end of your response starting with \`\`\`json.
+The JSON block MUST be a strict Array of objects: [{"name": "Habit Name", "description": "Short description", "frequency": "daily"}]. 
+Only include the JSON if you are suggesting habits for them to add. Keep your text response concise.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      let text = response.text();
+      
       let suggestions = [];
-      let responseText = "Here are some great habits to help you reach that goal:";
-
-      if (lowerQ.includes('fit') || lowerQ.includes('health') || lowerQ.includes('lose') || lowerQ.includes('step')) {
-        suggestions = [
-          { name: 'Walk 6000 steps', frequency: 'daily', description: 'Daily step goal for better health.' },
-          { name: 'Drink more water', frequency: 'daily', description: 'Stay hydrated (at least 8 glasses).' },
-          { name: 'Exercise 30 mins', frequency: 'daily', description: 'Any physical activity for 30 minutes.' }
-        ];
-      } else if (lowerQ.includes('productiv') || lowerQ.includes('work') || lowerQ.includes('focus') || lowerQ.includes('read')) {
-        suggestions = [
-          { name: 'Read daily', frequency: 'daily', description: 'Read 10 pages of a book.' },
-          { name: 'Plan tomorrow', frequency: 'daily', description: 'Write down top 3 tasks for the next day.' },
-          { name: 'Deep work block', frequency: 'daily', description: '1 hour of uninterrupted work.' }
-        ];
-      } else {
-        responseText = "I can definitely help with that. Start with these foundational habits:";
-        suggestions = [
-           { name: 'Morning Routine', frequency: 'daily', description: 'Wake up at the same time every day.' },
-           { name: '10 Min Meditation', frequency: 'daily', description: 'Clear your mind and reduce stress.' }
-        ];
+      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
+      if (jsonMatch) {
+        try {
+          suggestions = JSON.parse(jsonMatch[1]);
+          text = text.replace(jsonMatch[0], '').trim();
+        } catch(e) {
+          console.error("Failed to parse AI suggestions", e);
+        }
       }
 
-      setMessages([...newMsgs, { id: Date.now()+1, type: 'bot', text: responseText, suggestions }]);
-    }, 800);
+      setMessages(m => [...m, { id: Date.now()+1, type: 'bot', text, suggestions }]);
+    } catch (error) {
+      console.error(error);
+      setMessages(m => [...m, { id: Date.now()+1, type: 'bot', text: "Oops, I encountered an error connecting to my brain. Please check if your API Key in Settings is valid, or try again.", suggestions: [] }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleAdd = (suggestion) => {
     addHabit({
       name: suggestion.name,
       description: suggestion.description,
-      frequency: suggestion.frequency,
+      frequency: suggestion.frequency || 'daily',
       startDate: new Date().toISOString().split('T')[0]
     });
     setAddedHabits(prev => [...prev, suggestion.name]);
@@ -66,7 +88,7 @@ export default function AiCoach() {
         <h3 style={{ margin: 0, fontWeight: '700' }}>AI Habit Coach</h3>
       </div>
       
-      <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem', paddingRight: '0.5rem' }}>
+      <div style={{ maxHeight: '350px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem', paddingRight: '0.5rem' }}>
         <AnimatePresence>
           {messages.map((msg) => (
             <motion.div 
@@ -83,7 +105,7 @@ export default function AiCoach() {
                 border: msg.type === 'user' ? 'none' : '1px solid var(--border-color)'
               }}
             >
-              <p style={{ margin: 0, fontSize: '0.875rem' }}>{msg.text}</p>
+              <p style={{ margin: 0, fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>{msg.text}</p>
               
               {msg.suggestions && msg.suggestions.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
@@ -92,7 +114,7 @@ export default function AiCoach() {
                     return (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-color)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
                         <div>
-                          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{s.name}</span>
+                          <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>{s.name}</span>
                         </div>
                         <button 
                           onClick={() => handleAdd(s)}
@@ -116,6 +138,11 @@ export default function AiCoach() {
               )}
             </motion.div>
           ))}
+          {isTyping && (
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ alignSelf: 'flex-start', color: 'var(--text-muted)' }}>
+               <Loader2 className="spinner" size={20} />
+             </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
@@ -124,11 +151,12 @@ export default function AiCoach() {
           type="text" 
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Ask for advice..." 
+          placeholder="Ask a question or request advice..." 
           className="input-field"
+          disabled={isTyping}
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }}
         />
-        <button type="submit" className="btn btn-primary" style={{ padding: '0 1rem' }}>
+        <button type="submit" disabled={isTyping || !query.trim()} className="btn btn-primary" style={{ padding: '0 1rem' }}>
           <Send size={18} />
         </button>
       </form>

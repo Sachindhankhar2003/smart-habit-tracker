@@ -257,6 +257,14 @@ body {
   border: 1px solid rgba(255, 214, 10, 0.3);
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
 @media (max-width: 768px) {
   .app-container {
     flex-direction: column;
