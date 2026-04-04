@@ -233,6 +233,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
   .sidebar { 
     display: none; /* Removed completely for bottom nav */
   }
