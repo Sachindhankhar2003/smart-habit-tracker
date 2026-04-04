@@ -65,7 +65,7 @@ Only include the JSON if you are suggesting habits for them to add. Keep your te
       setMessages(m => [...m, { id: Date.now()+1, type: 'bot', text, suggestions }]);
     } catch (error) {
       console.error(error);
-      setMessages(m => [...m, { id: Date.now()+1, type: 'bot', text: "Oops, I encountered an error connecting to my brain. Please check if your API Key in Settings is valid, or try again.", suggestions: [] }]);
+      setMessages(m => [...m, { id: Date.now()+1, type: 'bot', text: `Oops, I encountered an error connecting to my brain: ${error.message || "Unknown Error"}. Please check if your API Configuration is correct.`, suggestions: [] }]);
     } finally {
       setIsTyping(false);
     }
