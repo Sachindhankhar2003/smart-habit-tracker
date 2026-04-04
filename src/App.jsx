@@ -14,7 +14,7 @@ import Settings from './views/Settings';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/smart-habit-tracker">
       <AuthProvider>
         <HabitProvider>
           <FitnessProvider>
