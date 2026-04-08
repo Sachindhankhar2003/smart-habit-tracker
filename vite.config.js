@@ -4,6 +4,14 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/smart-habit-tracker/',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({
