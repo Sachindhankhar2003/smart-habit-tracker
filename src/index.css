@@ -92,8 +92,7 @@ body {
 
 /* Sidebar for Desktop */
 .sidebar {
-  width: 220px;
-  min-width: 220px;
+  width: 200px;
   background-color: rgba(17, 17, 22, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -102,7 +101,6 @@ body {
   flex-direction: column;
   transition: transform 0.3s ease;
   z-index: 50;
-  overflow-y: auto;
 }
 
 .main-content {
@@ -300,10 +298,10 @@ body {
 
   .main-content {
     padding: 1rem;
-    padding-bottom: 80px;
+    padding-bottom: 120px;
     /* Space for bottom nav and extra scroll clearance */
     width: 100%;
-    max-width: 100%;
+    max-width: 100vw;
     box-sizing: border-box;
   }
 
