@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useAuth } from './AuthContext';
 import { format } from 'date-fns';
 
-const API_BASE = '/api/habits';
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL || ''}/api/habits`;
 
 const HabitContext = createContext();
 

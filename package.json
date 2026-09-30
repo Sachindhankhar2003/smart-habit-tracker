@@ -6,13 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:web": "vite build",
+    "build:cap": "vite build --mode capacitor",
+    "cap:sync": "node -e \"require('child_process').execSync('npm run build:cap && npx cap sync', {stdio:'inherit', shell:true})\"",
+    "cap:open": "npx cap open android",
+    "assets:generate": "node scripts/generate-android-assets.js",
     "postbuild": "node -e \"require('fs').copyFileSync('dist/index.html', 'dist/404.html')\"",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build:web",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
     "date-fns": "^3.6.0",
     "framer-motion": "^11.0.24",
     "lucide-react": "^0.368.0",
@@ -23,6 +31,7 @@
     "vite-plugin-pwa": "^1.2.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
@@ -31,6 +40,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "gh-pages": "^6.3.0",
+    "jimp": "^1.6.1",
     "vite": "^5.4.21"
   }
 }
